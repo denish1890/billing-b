@@ -87,15 +87,14 @@ if not firebase_admin._apps:
  firebase_admin.initialize_app(cred)
  
 
-db = mysql.connector.connect(
-        host="gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
-        port=4000,
-        user="4Er7E7yAa5CmneH.root",
-        password="JubMX8vnCyJqhX96",
-        database="cafe",
-        ssl_verify_identity=True,
-        ssl_ca="/etc/ssl/certs/ca-certificates.crt"
-)
+def get_db_connection():
+        return mysql.connector.connect(
+            host="gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
+            user="4Er7E7yAa5CmneH.root",
+            password="JubMX8vnCyJqhX96",
+            database="cafe",
+            autocommit=True
+        )
 
 db = get_db_connection() 
 cursor = db.cursor(dictionary=True)
@@ -2114,4 +2113,5 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
