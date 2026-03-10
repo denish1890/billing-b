@@ -1,8 +1,10 @@
 streamlit
-mysql-connector-python
-Pillow
 fpdf
-qrcode
 pyrebase4
-firebase_admin
+Pillow
+mysql-connector-python
+firebase-admin
+pandas
 matplotlib
+streamlit-autorefresh
+streamlit-option-menu
