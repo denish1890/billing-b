@@ -955,7 +955,7 @@ if st.session_state["page"] == "Admin":
             </div>
             """, unsafe_allow_html=True)
             
-        with col3:
+            with col3:
             st.markdown(f"""
             <div class="css-card" style="text-align: center; border-bottom: 4px solid #f44336;">
                 <h3 style="margin:0; color:#f44336; font-size: 32px;">{counts['cancelled_count'] or 0}</h3>
@@ -967,9 +967,10 @@ if st.session_state["page"] == "Admin":
         st.info("👈 Select an option from the sidebar to manage your cafe.")
 
     elif selected == "Add Items":
-        st.title("🍔 Add Items")
+    st.title("🍔 Add Items")
 
     with st.container(border=True):
+
         st.markdown('<div class="css-card">', unsafe_allow_html=True)
         st.subheader("➕ Add New Menu Item")
 
@@ -1001,9 +1002,8 @@ if st.session_state["page"] == "Admin":
             image = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"], key="add_item_image")
             available = st.checkbox("Available", value=True, key="add_item_available")
 
-        # ✅ BUTTON MUST BE HERE
         if st.button("Add Item", key="add_item_btn"):
-
+            st.write("Item added")  # your DB code here
             if not name.strip():
                 st.error("Please fill the data: Item Name is required.")
 
@@ -2133,6 +2133,7 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
 
 
