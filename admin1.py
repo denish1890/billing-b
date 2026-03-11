@@ -83,7 +83,7 @@ st.markdown("""
 st.set_page_config(page_title="Cafe Admin", layout="wide", initial_sidebar_state="expanded")
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(dict(st.secrets["firebase"]))
+   cred = credentials.Certificate(st.secrets["firebase"])
     firebase_admin.initialize_app(cred)
  
 
@@ -2113,6 +2113,7 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
 
 
