@@ -1047,10 +1047,10 @@ if st.session_state["page"] == "Admin":
                 st.success("✅ Item added successfully!")
                 st.rerun()
 
-        st.markdown('</div>', unsafe_allow_html=True)
-    elif selected == "Manage Menu":
+                st.markdown('</div>', unsafe_allow_html=True)
+            elif selected == "Manage Menu":
             
-            st.title("✏️ Manage Menu")
+                st.title("✏️ Manage Menu")
             # ----------------------
             # MENU SUMMARY
             # ----------------------
@@ -2133,6 +2133,7 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
 
 
