@@ -19,6 +19,9 @@ from streamlit_autorefresh import st_autorefresh
 from streamlit_option_menu import option_menu
 
 import base64
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IMAGE_DIR = os.path.join(BASE_DIR, "menu_images")
+os.makedirs(IMAGE_DIR, exist_ok=True)
 
 # Custom CSS to match your HTML theme for edit company
 st.markdown("""
@@ -2115,6 +2118,7 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
 
 
