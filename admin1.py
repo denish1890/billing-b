@@ -7,6 +7,7 @@ from io import BytesIO
 from PIL import Image
 import mysql.connector
 import firebase_admin
+import uuid
 
 from firebase_admin import credentials
 from firebase_admin import auth
@@ -2114,6 +2115,7 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
 
 
