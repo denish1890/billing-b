@@ -967,7 +967,7 @@ if st.session_state["page"] == "Admin":
         st.info("👈 Select an option from the sidebar to manage your cafe.")
 
     elif selected == "Add Items":
-    st.title("🍔 Add Items")
+        st.title("🍔 Add Items")
 
     with st.container(border=True):
         st.markdown('<div class="css-card">', unsafe_allow_html=True)
@@ -2133,6 +2133,7 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
 
 
