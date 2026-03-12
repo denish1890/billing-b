@@ -1083,14 +1083,13 @@ elif selected == "Manage Menu":
             
                     # Show image
                     with col2:
-                        try:
-                            if item["image"] and os.path.exists(item["image"]):
-                                st.image(Image.open(item["image"]), width=80)
-                            else:
-                                st.write("No Image")
-                        except:
+                        if item["image"]:
+                           try:
+                               st.image(item["image"], width=80)
+                           except:
+                               st.write("No Image")
+                        else:
                             st.write("No Image")
-            
                     # Show availability
                     with col4:
                         status = "🟢 Available" if item["available"] else "🔴 Disabled"
@@ -2132,6 +2131,7 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
 
 
