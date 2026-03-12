@@ -23,9 +23,6 @@ IMAGE_DIR = os.path.join(BASE_DIR, "menu_images")
 os.makedirs(IMAGE_DIR, exist_ok=True)
 import os
 
-IMAGE_DIR = "menu_images"
-os.makedirs(IMAGE_DIR, exist_ok=True)
-
 # Custom CSS to match your HTML theme for edit company
 st.markdown("""
 <style>
@@ -2134,6 +2131,7 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
 
 
