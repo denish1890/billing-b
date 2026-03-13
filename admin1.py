@@ -26,7 +26,39 @@ cloudinary.config(
     cloud_name="dfnd7rqbg",
     api_key="635954955762459",
     api_secret="EcCKClRGodV5S1oeEk5LBvANA-k"
-
+    secure = True
+def add_menu_item():
+    st.subheader("Add New Menu Item")
+    
+    with st.form("item_form", clear_on_submit=True):
+        name = st.text_input("Item Name (e.g., Pizza)")
+        price = st.number_input("Price", min_value=0)
+        
+        # File uploader for the image
+        uploaded_file = st.file_uploader("Choose an image", type=['png', 'jpg', 'jpeg'])
+        
+        submitted = st.form_submit_button("Save Item")
+        
+        if submitted:
+            if uploaded_file is not None:
+                try:
+                    # 1. Upload to Cloudinary
+                    upload_result = cloudinary.uploader.upload(uploaded_file)
+                    # 2. Get the secure URL
+                    img_url = upload_result["secure_url"]
+                    
+                    # 3. Save to TiDB
+                    cursor.execute(
+                        "INSERT INTO menu_items (name, image, price, email, available) VALUES (%s, %s, %s, %s, %s)",
+                        (name, img_url, price, st.session_state["email"], 1)
+                    )
+                    db.commit()
+                    st.success(f"Successfully uploaded! Image Link: {img_url}")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+            else:
+                st.warning("Please upload an image.")
+                add_menu_item()
 
 # Custom CSS to match your HTML theme for edit company
 st.markdown("""
@@ -2134,6 +2166,7 @@ if st.session_state["page"] == "downloadbill":
 
 
     
+
 
 
 
