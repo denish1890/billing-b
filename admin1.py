@@ -7,7 +7,6 @@ from io import BytesIO
 from PIL import Image
 import mysql.connector
 import firebase_admin
-import uuid
 
 from firebase_admin import credentials
 from firebase_admin import auth
@@ -19,46 +18,6 @@ from streamlit_autorefresh import st_autorefresh
 from streamlit_option_menu import option_menu
 
 import base64
-import cloudinary
-import cloudinary.uploader
-
-cloudinary.config(
-    cloud_name="dfnd7rqbg",
-    api_key="635954955762459",
-    api_secret="EcCKClRGodV5S1oeEk5LBvANA-k"
-    secure = True
-def add_menu_item():
-    st.subheader("Add New Menu Item")
-    
-    with st.form("item_form", clear_on_submit=True):
-        name = st.text_input("Item Name (e.g., Pizza)")
-        price = st.number_input("Price", min_value=0)
-        
-        # File uploader for the image
-        uploaded_file = st.file_uploader("Choose an image", type=['png', 'jpg', 'jpeg'])
-        
-        submitted = st.form_submit_button("Save Item")
-        
-        if submitted:
-            if uploaded_file is not None:
-                try:
-                    # 1. Upload to Cloudinary
-                    upload_result = cloudinary.uploader.upload(uploaded_file)
-                    # 2. Get the secure URL
-                    img_url = upload_result["secure_url"]
-                    
-                    # 3. Save to TiDB
-                    cursor.execute(
-                        "INSERT INTO menu_items (name, image, price, email, available) VALUES (%s, %s, %s, %s, %s)",
-                        (name, img_url, price, st.session_state["email"], 1)
-                    )
-                    db.commit()
-                    st.success(f"Successfully uploaded! Image Link: {img_url}")
-                except Exception as e:
-                    st.error(f"Error: {e}")
-            else:
-                st.warning("Please upload an image.")
-                add_menu_item()
 
 # Custom CSS to match your HTML theme for edit company
 st.markdown("""
@@ -373,7 +332,7 @@ if not st.session_state.company_loaded and st.session_state.get("email"):
         st.session_state.company_address = row.get("company_address", "")
         st.session_state.gst_number = row.get("gst_number", "")
         st.session_state.company_phone = row.get("mobile", "")
-        st.session_state.upi_qr_= row.get("upi_qr_image", "")
+        st.session_state.upi_qr_image = row.get("upi_qr_image", "")
         st.session_state.upi_id = row.get("upi_id", "")
         st.session_state.total_tables = row.get("total_tables", 0)
         st.session_state.online_payment_enabled = bool(
@@ -959,130 +918,117 @@ if st.session_state["page"] == "Admin":
     # ==========================
     # 🏠 DASHBOARD (New Home)
     # ==========================
-if selected == "Dashboard":
-       st.title("📊 Dashboard")
-       st.markdown("Overview of your cafe performance today.")
-    
-    # Fetch Data
-       cursor.execute("""
-        SELECT 
-            SUM(CASE WHEN status='COMPLETED' THEN 1 ELSE 0 END) AS completed_count,
-            SUM(CASE WHEN status='PENDING' THEN 1 ELSE 0 END) AS pending_count,
-            SUM(CASE WHEN status='CANCELLED' THEN 1 ELSE 0 END) AS cancelled_count
-        FROM orders WHERE email = %s
-    """, (st.session_state["email"],))
-    
-       counts = cursor.fetchone()
+    if selected == "Dashboard":
+        st.title("📊 Dashboard")
+        st.markdown("Overview of your cafe performance today.")
+        
+        # Fetch Data
+        cursor.execute("""
+            SELECT 
+                SUM(CASE WHEN status='COMPLETED' THEN 1 ELSE 0 END) AS completed_count,
+                SUM(CASE WHEN status='PENDING' THEN 1 ELSE 0 END) AS pending_count,
+                SUM(CASE WHEN status='CANCELLED' THEN 1 ELSE 0 END) AS cancelled_count
+            FROM orders WHERE email = %s
+        """, (st.session_state["email"],))
+        counts = cursor.fetchone()
 
-    # --- METRIC CARDS ---
-       col1, col2, col3 = st.columns(3)
-
-       with col1:
-        st.markdown(f"""
-        <div class="css-card" style="text-align: center; border-bottom: 4px solid #4CAF50;">
-            <h3 style="margin:0; color:#4CAF50; font-size: 32px;">{counts['completed_count'] or 0}</h3>
-            <p style="color:#666; font-weight: 600;">✅ Completed Orders</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-       with col2:
-        st.markdown(f"""
-        <div class="css-card" style="text-align: center; border-bottom: 4px solid #ff9800;">
-            <h3 style="margin:0; color:#ff9800; font-size: 32px;">{counts['pending_count'] or 0}</h3>
-            <p style="color:#666; font-weight: 600;">⏳ Pending Orders</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-       with col3:
-        st.markdown(f"""
-        <div class="css-card" style="text-align: center; border-bottom: 4px solid #f44336;">
-            <h3 style="margin:0; color:#f44336; font-size: 32px;">{counts['cancelled_count'] or 0}</h3>
-            <p style="color:#666; font-weight: 600;">❌ Cancelled Orders</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+        # --- CUSTOM COLORFUL METRIC CARDS ---
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown(f"""
+            <div class="css-card" style="text-align: center; border-bottom: 4px solid #4CAF50;">
+                <h3 style="margin:0; color:#4CAF50; font-size: 32px;">{counts['completed_count'] or 0}</h3>
+                <p style="color:#666; font-weight: 600;">✅ Completed Orders</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with col2:
+            st.markdown(f"""
+            <div class="css-card" style="text-align: center; border-bottom: 4px solid #ff9800;">
+                <h3 style="margin:0; color:#ff9800; font-size: 32px;">{counts['pending_count'] or 0}</h3>
+                <p style="color:#666; font-weight: 600;">⏳ Pending Orders</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with col3:
+            st.markdown(f"""
+            <div class="css-card" style="text-align: center; border-bottom: 4px solid #f44336;">
+                <h3 style="margin:0; color:#f44336; font-size: 32px;">{counts['cancelled_count'] or 0}</h3>
+                <p style="color:#666; font-weight: 600;">❌ Cancelled Orders</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
         st.divider()
         st.info("👈 Select an option from the sidebar to manage your cafe.")
-elif selected == "Add Items":
-    st.title("🍔 Add Items")
-    with st.container(border=True):
 
-        st.markdown('<div class="css-card">', unsafe_allow_html=True)
-        st.subheader("➕ Add New Menu Item")
+    elif selected == "Add Items":
+        st.title("🍔 Add Items")
+        with st.container(border=True):
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
+            st.subheader("➕ Add New Menu Item")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                name = st.text_input("Item Name", key="add_item_name")
+                type_count = st.number_input("How many variants?", min_value=0, max_value=10, step=1, key="add_variant_count")
+                variant_data = []
+        
+                if type_count > 0:
+                    st.markdown("### 🔹 Enter Variant Names & Prices")
+                    for i in range(int(type_count)):
+                        v_col1, v_col2 = st.columns(2)
+                        with v_col1:
+                            v_name = st.text_input(f"Variant {i+1} Name", key=f"vname_{i}")
+                        with v_col2:
+                            v_price = st.number_input(f"Price for {i+1}", min_value=0, key=f"vprice_{i}")
+                        variant_data.append({"name": v_name, "price": v_price})
+    
+            with col2:
+                image = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"], key="add_item_image")
+                available = st.checkbox("Available", value=True, key="add_item_available")
+    
+            if st.button("Add Item", key="add_item_btn"):
+                # --- VALIDATION LOGIC START ---
+                if not name.strip():
+                    st.error("Please fill the data: **Item Name** is required.")
+                elif type_count > 0 and any(not v["name"].strip() for v in variant_data):
+                    st.error("Please fill the data: One or more **Variant Names** are empty.")
+                elif type_count > 0 and any(v["price"] <= 0 for v in variant_data):
+                    st.error("Please fill the data: All **Variant Prices** must be greater than 0.")
+                elif type_count == 0:
+                     st.error("Please fill the data: You must have at least **1 variant** (or a base price).")
+                # --- VALIDATION LOGIC END ---
+                
+                else:
+                    # Proceed with saving if validation passes
+                    image_path = None
+                    if image:
+                        os.makedirs("menu_images", exist_ok=True)
+                        image_path = os.path.join("menu_images", image.name)
+                        with open(image_path, "wb") as f:
+                            f.write(image.getbuffer())
+            
+                    variants_json = json.dumps(variant_data) if variant_data else None
+                    base_price = min([v["price"] for v in variant_data]) if variant_data else 0
+            
+                    cursor.execute("""
+                        INSERT INTO menu_items 
+                        (name, price, image, available, is_active, email, variants) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """, (
+                        name, base_price, image_path, available, 1, 
+                        st.session_state["email"], variants_json
+                    ))
+                    db.commit()
+                    st.success("✅ Item added successfully!")
+                    st.rerun()
+    
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        col1, col2 = st.columns(2)
-
-        with col1:
-            name = st.text_input("Item Name", key="add_item_name")
-            type_count = st.number_input(
-                "How many variants?", min_value=0, max_value=10, step=1, key="add_variant_count"
-            )
-
-            variant_data = []
-
-            if type_count > 0:
-                st.markdown("### 🔹 Enter Variant Names & Prices")
-
-                for i in range(int(type_count)):
-                    v_col1, v_col2 = st.columns(2)
-
-                    with v_col1:
-                        v_name = st.text_input(f"Variant {i+1} Name", key=f"vname_{i}")
-
-                    with v_col2:
-                        v_price = st.number_input(f"Price for {i+1}", min_value=0, key=f"vprice_{i}")
-
-                    variant_data.append({"name": v_name, "price": v_price})
-
-        with col2:
-            image = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"], key="add_item_image")
-            available = st.checkbox("Available", value=True, key="add_item_available")
-           
-
-        if st.button("Add Item", key="add_item_btn"):
-            st.write("Item added")  # your DB code here
-            if not name.strip():
-                st.error("Please fill the data: Item Name is required.")
-
-            elif type_count > 0 and any(not v["name"].strip() for v in variant_data):
-                st.error("Variant name missing")
-
-            elif type_count > 0 and any(v["price"] <= 0 for v in variant_data):
-                st.error("Variant price must be greater than 0")
-
-           else:
-                image_url = None  # Change 1: We use URL now, not local path
-
-                if image is not None:
-                    # Change 2: Upload directly to Cloudinary
-                    with st.spinner("Uploading image to Cloud..."):
-                        upload_result = cloudinary.uploader.upload(image)
-                        image_url = upload_result["secure_url"] # This is the web link
-
-                variants_json = json.dumps(variant_data) if variant_data else None
-                base_price = min([v["price"] for v in variant_data]) if variant_data else 0
-
-                # Change 3: Save the image_url to the database
-                cursor.execute("""
-                    INSERT INTO menu_items
-                    (name, price, image, available, is_active, email, variants)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    name,
-                    base_price,
-                    image_url,  # This now saves "https://res.cloudinary.com/..."
-                    available,
-                    1,
-                    st.session_state["email"],
-                    variants_json
-                ))
-
-                db.commit()
-                st.success("✅ Item added with Cloud Image!")
-                st.rerun()
-
-                st.markdown('</div>', unsafe_allow_html=True)
-elif selected == "Manage Menu":
+ 
+    elif selected == "Manage Menu":
             
             st.title("✏️ Manage Menu")
             # ----------------------
@@ -1118,13 +1064,14 @@ elif selected == "Manage Menu":
             
                     # Show image
                     with col2:
-                        if item["image"]:
-                           try:
-                               st.image(item["image"], width=80)
-                           except:
-                               st.write("No Image")
-                        else:
+                        try:
+                            if item["image"] and os.path.exists(item["image"]):
+                                st.image(Image.open(item["image"]), width=80)
+                            else:
+                                st.write("No Image")
+                        except:
                             st.write("No Image")
+            
                     # Show availability
                     with col4:
                         status = "🟢 Available" if item["available"] else "🔴 Disabled"
@@ -1332,7 +1279,7 @@ elif selected == "Manage Menu":
                 display_menu_items(cursor.fetchall(), "disabled")
 
 
-elif selected == "Orders":
+    elif selected == "Orders":
         st.title("🧾 Order Management")
         st_autorefresh(interval=5000, key="orders_autorefresh")  # Auto-refresh every 5s
         st.divider()
@@ -1541,7 +1488,7 @@ elif selected == "Orders":
             st.divider()
             show_orders("CANCELLED", "cancelled")
 
-elif selected == "Tables":
+    elif selected == "Tables":
         st.title("🪑 Live Table Status")
         
         # 🟢 FIX: Added Missing Table Logic
@@ -1604,7 +1551,7 @@ elif selected == "Tables":
 
 
 
-elif selected == "Edit Company":
+    elif selected == "Edit Company":
         # --- 1. THEME HEADER ---
         # Using your gradient header style from the CSS
         st.markdown('<div class="header-style"><h1>✏️ Edit Company Details</h1></div>', unsafe_allow_html=True)
@@ -1714,7 +1661,7 @@ elif selected == "Edit Company":
             st.markdown('</div>', unsafe_allow_html=True)
     
 
-elif selected == "Inventory / Sales":
+    elif selected == "Inventory / Sales":
         st.title("📈 Analytics & Reports")
         col1, col2 = st.columns(2)
     
@@ -1923,7 +1870,7 @@ elif selected == "Inventory / Sales":
                     plot_comparison(str(year1), total1, str(year2), total2)
 
 
-elif selected == "Help & Support":
+    elif selected == "Help & Support":
         # ==========================
         # 🎨 HELP PAGE SPECIFIC CSS & LAYOUT
         # ==========================
@@ -2166,29 +2113,6 @@ if st.session_state["page"] == "downloadbill":
 
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
